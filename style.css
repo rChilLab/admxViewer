@@ -1,0 +1,77 @@
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+}
+.layout {
+  display: flex;
+  height: 100vh;
+}
+.sidebar {
+  width: 250px;
+  overflow-y: auto;
+  background: #f4f4f4;
+  border-right: 1px solid #ccc;
+  padding: 1rem;
+}
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+header {
+  padding: 1rem;
+  background: #fafafa;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+header input {
+  flex: 1;
+  padding: 0.5rem;
+  font-size: 1rem;
+}
+.toolbar button {
+  padding: 0.5rem 1rem;
+}
+#results {
+  padding: 1rem;
+  overflow-y: auto;
+}
+.policy {
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #fff;
+}
+.policy summary {
+  font-weight: bold;
+  cursor: pointer;
+}
+.policy-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5rem 0;
+}
+.policy-table td {
+  border: 1px solid #ddd;
+  padding: 0.5rem;
+}
+.copy-btn {
+  margin-left: 0.5rem;
+  cursor: pointer;
+}
+.json-toggle {
+  margin-top: 0.5rem;
+  cursor: pointer;
+}
+.json-block {
+  background: #f0f0f0;
+  padding: 0.5rem;
+  white-space: pre-wrap;
+}
+.sidebar li.active {
+  font-weight: bold;
+  background-color: #e0e0e0;
+}

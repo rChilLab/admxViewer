@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ADMX Policy Viewer</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <h2>Policy Paths</h2>
+      <ul id="categoryTree"></ul>
+    </aside>
+
+    <main class="main">
+      <header>
+        <input type="text" id="search" placeholder="Search policies..." />
+        <div class="toolbar">
+          <button id="expandAll">Expand all</button>
+          <button id="collapseAll">Collapse all</button>
+        </div>
+      </header>
+      <section id="results"></section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
