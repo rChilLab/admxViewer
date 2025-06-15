@@ -1,127 +1,216 @@
+let policies = [];
+let fullCategoryTree = {};
 
-let allPolicies = [];
-let fuse;
-
-fetch("policies.json")
-  .then((res) => res.json())
-  .then((data) => {
-    allPolicies = data;
-    initFuse();
-    renderTree();
+document.addEventListener("DOMContentLoaded", () => {
+  // 1. Sidebar-Resizer
+  const sidebar = document.getElementById("sidebar");
+  const resizer = document.getElementById("resizer");
+  let isResizing = false;
+  resizer.addEventListener("mousedown", () => {
+    isResizing = true;
+    document.body.style.cursor = "col-resize";
   });
-
-function initFuse() {
-  fuse = new Fuse(allPolicies, {
-    keys: ["name", "key", "valueName", "parentCategory", "admxFile"],
-    threshold: 0.3,
-  });
-}
-
-function renderTree() {
-  const tree = {};
-  allPolicies.forEach((p) => {
-    const parts = (p.gpPath || p.parentCategory || "Uncategorized").split(" → ");
-    let current = tree;
-    for (let part of parts) {
-      if (!current[part]) current[part] = {};
-      current = current[part];
+  document.addEventListener("mousemove", e => {
+    if (!isResizing) return;
+    const newWidth = e.clientX;
+    const min = parseInt(getComputedStyle(sidebar).minWidth);
+    const max = parseInt(getComputedStyle(sidebar).maxWidth);
+    if (newWidth > min && newWidth < max) {
+      sidebar.style.width = newWidth + "px";
     }
-    current.__policies = current.__policies || [];
-    current.__policies.push(p);
   });
-
-  const ul = document.getElementById("categoryTree");
-  ul.innerHTML = "";
-  function buildList(obj, parentUl) {
-    for (let key in obj) {
-      if (key === "__policies") continue;
-      const li = document.createElement("li");
-      li.textContent = key;
-      li.onclick = (e) => {
-        e.stopPropagation();
-        document.querySelectorAll(".sidebar li").forEach((li) => li.classList.remove("active"));
-        li.classList.add("active");
-        renderPolicies(obj[key].__policies || []);
-      };
-      parentUl.appendChild(li);
-      const nestedUl = document.createElement("ul");
-      li.appendChild(nestedUl);
-      buildList(obj[key], nestedUl);
+  document.addEventListener("mouseup", () => {
+    if (isResizing) {
+      isResizing = false;
+      document.body.style.cursor = "";
     }
-  }
-  buildList(tree, ul);
-}
-
-function renderPolicies(policies) {
-  const container = document.getElementById("results");
-  container.innerHTML = "";
-  policies.forEach((p) => {
-    const details = document.createElement("details");
-    details.className = "policy";
-    const summary = document.createElement("summary");
-    summary.textContent = p.name;
-    details.appendChild(summary);
-
-    const table = document.createElement("table");
-    table.className = "policy-table";
-    const entries = [
-      ["Registry Path", p.key],
-      ["Value Name", p.valueName],
-      ["Value Type", p.valueType || "—"],
-      ["Category", p.parentCategory || "—"],
-      ["ADMX File", p.admxFile],
-    ];
-    entries.forEach(([label, val]) => {
-      const copyAllowed = !["Category", "ADMX File"].includes(label);
-      const row = document.createElement("tr");
-      const cell1 = document.createElement("td");
-      const cell2 = document.createElement("td");
-      const copyBtn = document.createElement("span");
-      copyBtn.textContent = "📋";
-      copyBtn.className = "copy-btn";
-      if (copyAllowed) copyBtn.onclick = () => navigator.clipboard.writeText(val || "");
-      cell1.textContent = label;
-      cell2.textContent = val || "—";
-      if (copyAllowed) cell2.appendChild(copyBtn);
-      row.appendChild(cell1);
-      row.appendChild(cell2);
-      table.appendChild(row);
-    });
-    details.appendChild(table);
-
-    const expl = document.createElement("p");
-    expl.textContent = p.explainText || "";
-    details.appendChild(expl);
-
-    const jsonToggle = document.createElement("div");
-    jsonToggle.className = "json-toggle";
-    jsonToggle.textContent = "Show JSON";
-    const jsonBlock = document.createElement("pre");
-    jsonBlock.className = "json-block";
-    jsonBlock.style.display = "none";
-    jsonBlock.textContent = JSON.stringify(p, null, 2);
-    jsonToggle.onclick = () => {
-      jsonBlock.style.display = jsonBlock.style.display === "none" ? "block" : "none";
-    };
-
-    details.appendChild(jsonToggle);
-    details.appendChild(jsonBlock);
-
-    container.appendChild(details);
   });
-}
 
-document.getElementById("search").addEventListener("input", (e) => {
-  const query = e.target.value.trim();
-  if (!query) {
-    renderPolicies([]);
-    return;
-  }
-  const results = fuse.search(query).map((r) => r.item);
-  renderPolicies(results);
+  // 2. Control-Buttons & Inputs
+  document.getElementById("expandAll").addEventListener("click", () =>
+    document.querySelectorAll("#categoryTree ul").forEach(u => u.style.display = "block")
+  );
+  document.getElementById("collapseAll").addEventListener("click", () =>
+    document.querySelectorAll("#categoryTree ul").forEach(u => u.style.display = "none")
+  );
+  document.getElementById("clearSearch").addEventListener("click", () => {
+    document.getElementById("search").value = "";
+    applyFilters();
+  });
+  document.getElementById("search").addEventListener("input", applyFilters);
+  document.querySelectorAll('.class-filter input').forEach(cb =>
+    cb.addEventListener("change", applyFilters)
+  );
+  document.getElementById("toggleJson").addEventListener("click", () =>
+    document.getElementById("jsonView").classList.toggle("hidden")
+  );
+
+  // 3. Reset all filters on project-title click
+  const projTitle = document.querySelector(".project-title");
+  projTitle.addEventListener("click", () => {
+    // clear search
+    document.getElementById("search").value = "";
+    // re-check both class filters
+    document.querySelectorAll('.class-filter input').forEach(cb => cb.checked = true);
+    // re-render
+    applyFilters();
+  });
+
+  // 4. Load policies.json
+  fetch("policies.json")
+    .then(res => res.json())
+    .then(data => {
+      policies = data;
+      fullCategoryTree = buildCategoryTree(policies);
+      applyFilters();  // initial render
+    })
+    .catch(err => console.error("Fehler beim Laden der policies.json:", err));
 });
 
-document.getElementById("expandAll").onclick = () =>
-  document.querySelectorAll(".policy").forEach((el) => el.setAttribute("open", true));
-document.getElementById("collapseAll").onclick = () =>
-  document.querySelectorAll(".policy").forEach((el) => el.removeAttribute("open"));
+// Pascal/CamelCase → "Title Case"
+function formatPolicyName(name) {
+  return name
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/([A-Z])([A-Z][a-z])/g, "$1 $2")
+    .replace(/^./, s => s.toUpperCase());
+}
+
+// Build category tree
+function buildCategoryTree(list) {
+  const tree = {};
+  list.forEach(p => {
+    if (!Array.isArray(p.categoryPath)) return;
+    let node = tree;
+    p.categoryPath.forEach(cat => {
+      node[cat] = node[cat] || {};
+      node = node[cat];
+    });
+    node.__policies = (node.__policies || []).concat(p);
+  });
+  return tree;
+}
+
+// Render sidebar recursively
+function renderSidebar(tree, container = document.getElementById("categoryTree"), depth = 0) {
+  container.innerHTML = "";
+  for (const key in tree) {
+    if (key === "__policies") continue;
+    const li = document.createElement("li");
+    li.className = "collapsible";
+    li.style.paddingLeft = `${depth * 16}px`;
+    const label = key.replace(/\$\((?:string\.)?(.+)\)/, (_, m) => m.replace(/_/g, " "));
+    li.textContent = `📂 ${label}`;
+    const sub = document.createElement("ul");
+    sub.style.display = "none";
+    li.appendChild(sub);
+    li.addEventListener("click", e => {
+      e.stopPropagation();
+      sub.style.display = sub.style.display === "block" ? "none" : "block";
+    });
+    renderSidebar(tree[key], sub, depth + 1);
+    (tree[key].__policies || []).forEach(p => {
+      const leaf = document.createElement("li");
+      leaf.className = "policy-leaf";
+      leaf.style.paddingLeft = `${(depth + 1) * 16}px`;
+      leaf.textContent = `📄 ${formatPolicyName(p.name)}`;
+      leaf.addEventListener("click", ev => {
+        ev.stopPropagation();
+        showPolicy(p);
+      });
+      sub.appendChild(leaf);
+    });
+    container.appendChild(li);
+  }
+}
+
+// Get selected classes from checkboxes
+function getSelectedClasses() {
+  return Array.from(document.querySelectorAll('.class-filter input:checked'))
+    .map(cb => cb.value);
+}
+
+// Apply search + class filters
+function applyFilters() {
+  const q = document.getElementById("search").value.trim().toLowerCase();
+  const classes = getSelectedClasses();
+  let filtered = policies.filter(p => classes.includes(p.policyClass));
+  if (q) {
+    filtered = filtered.filter(p => {
+      if (p.name.toLowerCase().includes(q)) return true;
+      if (p.key && p.key.toLowerCase().includes(q)) return true;
+      if (p.valueName && p.valueName.toLowerCase().includes(q)) return true;
+      if (p.admxFile && p.admxFile.toLowerCase().includes(q)) return true;
+      return Array.isArray(p.categoryPath) && p.categoryPath.some(c => c.toLowerCase().includes(q));
+    });
+  }
+  renderSidebar(buildCategoryTree(filtered));
+  clearResults();
+}
+
+// Show policy details
+function showPolicy(p) {
+  const results = document.getElementById("results");
+  results.innerHTML = "";
+  const div = document.createElement("div");
+  div.className = "policy";
+
+  const header = `<h3>${formatPolicyName(p.name)}</h3>`;
+
+  // Registry info table with hover-copy
+  let tbl = `
+    <table>
+      <tr>
+        <td>Registry Path</td>
+        <td class="copy-cell">${p.key || "-"}
+          <button class="copy-btn" title="Copy to clipboard"
+                  onclick="navigator.clipboard.writeText('${p.key || ""}')">
+            <img src="copy-icon.png" alt="Copy"/>
+          </button>
+        </td>
+      </tr>
+      <tr>
+        <td>Registry Name</td>
+        <td class="copy-cell">${p.valueName || "-"}
+          <button class="copy-btn" title="Copy to clipboard"
+                  onclick="navigator.clipboard.writeText('${p.valueName || ""}')">
+            <img src="copy-icon.png" alt="Copy"/>
+          </button>
+        </td>
+      </tr>
+      <tr><td>Value Type</td><td>${p.valueType || "-"}</td></tr>
+      <tr><td>Supported On</td><td>${p.supportedOn || "-"}</td></tr>
+      <tr><td>Deprecated</td><td>${p.deprecated ? "Yes" : "No"}</td></tr>
+      <tr><td>ADMX File</td><td>${p.admxFile || "-"}</td></tr>
+    </table>
+  `;
+
+  // Options table
+  if (p.options && p.options.length) {
+    tbl += `
+      <table class="options-table">
+        <tr><th>Option</th><th>Value</th></tr>
+        ${p.options.map(o => `
+          <tr class="${o.default ? "default-row" : ""}">
+            <td>
+              ${o.name}
+              ${o.default ? `<span class="default-badge" title="Default">&#9733;</span>` : ""}
+            </td>
+            <td class="value-cell">${o.value}</td>
+          </tr>
+        `).join("")}
+      </table>
+    `;
+  }
+
+  const explainDiv = `<div class="explain">${p.explainText || ""}</div>`;
+  div.innerHTML = header + tbl + explainDiv;
+  results.appendChild(div);
+
+  // JSON view
+  document.getElementById("jsonView").textContent = JSON.stringify(p, null, 2);
+}
+
+function clearResults() {
+  document.getElementById("results").innerHTML = "";
+  document.getElementById("jsonView").textContent = "";
+}

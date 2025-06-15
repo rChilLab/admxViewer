@@ -5,27 +5,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ADMX Policy Viewer</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
 </head>
 <body>
+  <header class="toolbar">
+    <input type="text" id="search" placeholder="Search policies..." />
+    <button id="clearSearch">Clear</button>
+    <button id="expandAll">Expand all</button>
+    <button id="collapseAll">Collapse all</button>
+    <div class="class-filter">
+      <label><input type="checkbox" value="User" checked> User</label>
+      <label><input type="checkbox" value="Machine" checked> Machine</label>
+    </div>
+    <button id="toggleJson">Toggle JSON</button>
+
+    <!-- NEU: Projektname ganz rechts -->
+    <span class="project-title">ADMX Policy Viewer</span>
+  </header>
+
   <div class="layout">
-    <aside class="sidebar">
-      <h2>Policy Paths</h2>
+    <aside class="sidebar" id="sidebar">
+      <h2>Administrative Templates</h2>
       <ul id="categoryTree"></ul>
     </aside>
-
+    <div id="resizer"></div>
     <main class="main">
-      <header>
-        <input type="text" id="search" placeholder="Search policies..." />
-        <div class="toolbar">
-          <button id="expandAll">Expand all</button>
-          <button id="collapseAll">Collapse all</button>
-        </div>
-      </header>
       <section id="results"></section>
+      <pre id="jsonView" class="hidden"></pre>
     </main>
   </div>
 
-  <script src="script.js"></script>
+  <script src="script.js" defer></script>
 </body>
 </html>
