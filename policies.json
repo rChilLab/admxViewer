@@ -1,1 +1,22 @@
-[]
+[
+  {
+    "name": "Disable First Run Page",
+    "key": "HKEY_LOCAL_MACHINE\\Software\\Policies\\Microsoft\\Edge",
+    "valueName": "HideFirstRunExperience",
+    "valueType": "decimal",
+    "explainText": "Hides the First Run page in Microsoft Edge.",
+    "admxFile": "msedge.admx",
+    "parentCategory": "Microsoft Edge\\Startup",
+    "gpPath": "Administrative Templates \u2192 Microsoft Edge \u2192 Startup"
+  },
+  {
+    "name": "Enable Automatic Updates",
+    "key": "HKEY_LOCAL_MACHINE\\Software\\Policies\\Microsoft\\EdgeUpdate",
+    "valueName": "AutoUpdateCheckPeriodMinutes",
+    "valueType": "decimal",
+    "explainText": "Enables automatic update checks for Microsoft Edge.",
+    "admxFile": "msedgeupdate.admx",
+    "parentCategory": "Microsoft Edge Update",
+    "gpPath": "Administrative Templates \u2192 Microsoft Edge Update"
+  }
+]
