@@ -75,3 +75,40 @@ header input {
   font-weight: bold;
   background-color: #e0e0e0;
 }
+
+
+@media (max-width: 768px) {
+  .layout {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #ccc;
+  }
+
+  .main {
+    height: auto;
+  }
+
+  header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .policy-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .policy-table tr {
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+}
