@@ -72,16 +72,17 @@ function renderPolicies(policies) {
       ["ADMX File", p.admxFile],
     ];
     entries.forEach(([label, val]) => {
+      const copyAllowed = !["Category", "ADMX File"].includes(label);
       const row = document.createElement("tr");
       const cell1 = document.createElement("td");
       const cell2 = document.createElement("td");
       const copyBtn = document.createElement("span");
       copyBtn.textContent = "📋";
       copyBtn.className = "copy-btn";
-      copyBtn.onclick = () => navigator.clipboard.writeText(val || "");
+      if (copyAllowed) copyBtn.onclick = () => navigator.clipboard.writeText(val || "");
       cell1.textContent = label;
       cell2.textContent = val || "—";
-      cell2.appendChild(copyBtn);
+      if (copyAllowed) cell2.appendChild(copyBtn);
       row.appendChild(cell1);
       row.appendChild(cell2);
       table.appendChild(row);
