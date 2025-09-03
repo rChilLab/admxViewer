@@ -1,9 +1,9 @@
 let policies = [];
-let fullCategoryTree = {};
+let sidebar;
 
 document.addEventListener("DOMContentLoaded", () => {
   // 1. Sidebar-Resizer
-  const sidebar = document.getElementById("sidebar");
+  sidebar = document.getElementById("sidebar");
   const resizer = document.getElementById("resizer");
   let isResizing = false;
   resizer.addEventListener("mousedown", () => {
@@ -61,11 +61,19 @@ document.addEventListener("DOMContentLoaded", () => {
     .then(res => res.json())
     .then(data => {
       policies = data;
-      fullCategoryTree = buildCategoryTree(policies);
       applyFilters();  // initial render
     })
     .catch(err => console.error("Fehler beim Laden der policies.json:", err));
 });
+
+function adjustSidebarWidth() {
+  if (!sidebar) return;
+  const max = parseInt(getComputedStyle(sidebar).maxWidth);
+  const min = parseInt(getComputedStyle(sidebar).minWidth);
+  const contentWidth = sidebar.scrollWidth;
+  const newWidth = Math.min(Math.max(contentWidth, min), max);
+  sidebar.style.width = newWidth + "px";
+}
 
 // Pascal/CamelCase → "Title Case"
 function formatPolicyName(name) {
@@ -94,33 +102,38 @@ function buildCategoryTree(list) {
 // Render sidebar recursively
 function renderSidebar(tree, container = document.getElementById("categoryTree"), depth = 0) {
   container.innerHTML = "";
-  for (const key in tree) {
-    if (key === "__policies") continue;
-    const li = document.createElement("li");
-    li.className = "collapsible";
-    li.style.paddingLeft = `${depth * 16}px`;
-    const label = key.replace(/\$\((?:string\.)?(.+)\)/, (_, m) => m.replace(/_/g, " "));
-    li.textContent = `📂 ${label}`;
-    const sub = document.createElement("ul");
-    sub.style.display = "none";
-    li.appendChild(sub);
-    li.addEventListener("click", e => {
-      e.stopPropagation();
-      sub.style.display = sub.style.display === "block" ? "none" : "block";
-    });
-    renderSidebar(tree[key], sub, depth + 1);
-    (tree[key].__policies || []).forEach(p => {
-      const leaf = document.createElement("li");
-      leaf.className = "policy-leaf";
-      leaf.style.paddingLeft = `${(depth + 1) * 16}px`;
-      leaf.textContent = `📄 ${formatPolicyName(p.name)}`;
-      leaf.addEventListener("click", ev => {
-        ev.stopPropagation();
-        showPolicy(p);
+  Object.keys(tree)
+    .filter(key => key !== "__policies")
+    .forEach(key => {
+      const li = document.createElement("li");
+      li.className = "collapsible";
+      li.style.paddingLeft = `${depth * 16}px`;
+      const label = key.replace(/\$\((?:string\.)?(.+)\)/, (_, m) => m.replace(/_/g, " "));
+      li.textContent = `📂 ${label}`;
+      const sub = document.createElement("ul");
+      sub.style.display = "none";
+      li.appendChild(sub);
+      li.addEventListener("click", e => {
+        e.stopPropagation();
+        sub.style.display = sub.style.display === "block" ? "none" : "block";
+        adjustSidebarWidth();
       });
-      sub.appendChild(leaf);
+      renderSidebar(tree[key], sub, depth + 1);
+      (tree[key].__policies || []).forEach(p => {
+        const leaf = document.createElement("li");
+        leaf.className = "policy-leaf";
+        leaf.style.paddingLeft = `${(depth + 1) * 16}px`;
+        leaf.textContent = `📄 ${formatPolicyName(p.name)}`;
+        leaf.addEventListener("click", ev => {
+          ev.stopPropagation();
+          showPolicy(p);
+        });
+        sub.appendChild(leaf);
+      });
+      container.appendChild(li);
     });
-    container.appendChild(li);
+  if (container.id === "categoryTree") {
+    adjustSidebarWidth();
   }
 }
 
@@ -163,8 +176,7 @@ function showPolicy(p) {
       <tr>
         <td>Registry Path</td>
         <td class="copy-cell">${p.key || "-"}
-          <button class="copy-btn" title="Copy to clipboard"
-                  onclick="navigator.clipboard.writeText('${p.key || ""}')">
+          <button class="copy-btn" title="Copy to clipboard">
             <img src="copy-icon.png" alt="Copy"/>
           </button>
         </td>
@@ -172,8 +184,7 @@ function showPolicy(p) {
       <tr>
         <td>Registry Name</td>
         <td class="copy-cell">${p.valueName || "-"}
-          <button class="copy-btn" title="Copy to clipboard"
-                  onclick="navigator.clipboard.writeText('${p.valueName || ""}')">
+          <button class="copy-btn" title="Copy to clipboard">
             <img src="copy-icon.png" alt="Copy"/>
           </button>
         </td>
@@ -206,6 +217,18 @@ function showPolicy(p) {
   const explainDiv = `<div class="explain">${p.explainText || ""}</div>`;
   div.innerHTML = header + tbl + explainDiv;
   results.appendChild(div);
+
+  const [keyBtn, nameBtn] = div.querySelectorAll('.copy-btn');
+  if (keyBtn) {
+    keyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(p.key || "");
+    });
+  }
+  if (nameBtn) {
+    nameBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(p.valueName || "");
+    });
+  }
 
   // JSON view
   document.getElementById("jsonView").textContent = JSON.stringify(p, null, 2);
