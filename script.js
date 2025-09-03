@@ -93,7 +93,8 @@ function buildCategoryTree(list) {
       node[cat] = node[cat] || {};
       node = node[cat];
     });
-    node.__policies = (node.__policies || []).concat(p);
+    if (!node.__policies) node.__policies = [];
+    node.__policies.push(p);
   });
   return tree;
 }
