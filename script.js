@@ -1,5 +1,4 @@
 let policies = [];
-let fullCategoryTree = {};
 
 document.addEventListener("DOMContentLoaded", () => {
   // 1. Sidebar-Resizer
@@ -61,7 +60,6 @@ document.addEventListener("DOMContentLoaded", () => {
     .then(res => res.json())
     .then(data => {
       policies = data;
-      fullCategoryTree = buildCategoryTree(policies);
       applyFilters();  // initial render
     })
     .catch(err => console.error("Fehler beim Laden der policies.json:", err));
