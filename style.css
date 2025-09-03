@@ -1,32 +1,52 @@
 /* ---------------- Global ---------------- */
-body {
-  margin: 0;
-  font-family: sans-serif;
+:root {
+  --primary-bg: #003366;
+  --light-bg: #f4f4f4;
+  --border-color: #ccc;
+  --hover-bg: rgba(0, 64, 128, 0.1);
+  --active-bg: rgba(0, 102, 204, 0.2);
+  --active-border: #0066cc;
+  --indent-size: 1.2rem; /* Control tree indentation */
 }
 
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #333;
+}
+
+/* ---------------- Toolbar ---------------- */
 header.toolbar {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
   align-items: center;
   padding: 1rem;
-  background-color: #003366;
+  background-color: var(--primary-bg);
   color: white;
-  position: relative; /* für project-title */
 }
 
-header input {
+header input[type="text"] {
   flex: 1;
   padding: 0.5rem;
   font-size: 1rem;
+  min-width: 200px;
   max-width: 400px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
 }
 
 header button {
   padding: 0.5rem 1rem;
   background-color: white;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-color);
   cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+header button:hover {
+  background-color: #f0f0f0;
 }
 
 .class-filter {
@@ -40,192 +60,251 @@ header button {
   align-items: center;
   gap: 0.25rem;
   font-size: 0.9rem;
-}
-
-/* Projekt-Titel rechts oben */
-.project-title {
-  margin-left: auto;
-  color: white;
-  font-size: 1.1rem;
-  font-weight: bold;
   cursor: pointer;
 }
 
-/* Layout */
+.project-title {
+  margin-left: auto;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+/* ---------------- Layout ---------------- */
 .layout {
   display: flex;
   height: calc(100vh - 70px);
-  overflow: hidden;
 }
 
 .sidebar {
-  width: 300px;
-  min-width: 150px;
-  max-width: 600px;
-  background: #f4f4f4;
-  border-right: 1px solid #ccc;
+  /* Set a fixed starting width as requested */
+  width: 440px;
+  
+  /* Set constraints for the manual resizer */
+  min-width: 250px;
+  max-width: 1000px;
+  
+  background: var(--light-bg);
+  border-right: 1px solid var(--border-color);
   padding: 1rem;
-  overflow-y: auto;
+  overflow: auto;
+  user-select: none;
+  flex-shrink: 0; /* Prevent the sidebar from shrinking */
 }
 
 #resizer {
   width: 5px;
   cursor: col-resize;
   background-color: #ddd;
+  flex-shrink: 0;
 }
 
 .main {
   flex: 1;
   overflow-y: auto;
   padding: 1rem;
+  position: relative;
 }
 
+/* ---------------- Sidebar Tree ---------------- */
 .sidebar ul {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding-left: var(--indent-size);
+}
+.sidebar ul.root {
+  padding-left: 0;
 }
 
 .sidebar li {
-  user-select: none;
+  padding: 0.1rem 0;
 }
 
-.collapsible:hover,
-.policy-leaf:hover {
-  background: rgba(0, 64, 128, 0.1);
+.category-name, .policy-leaf {
+  cursor: pointer;
+  display: block;
+  padding: 5px;
+  border-radius: 4px;
+  white-space: nowrap;
 }
 
-/* -------------- Policy Details -------------- */
+.category-name:hover, .policy-leaf:hover {
+  background: var(--hover-bg);
+}
+
+.policy-leaf.active {
+  background-color: var(--active-bg);
+  font-weight: 600;
+  box-shadow: inset 2px 0 0 var(--active-border);
+}
+
+.category-name {
+  font-weight: 500;
+}
+
+/* Icons */
+.category-name::before {
+  content: '▶';
+  display: inline-block;
+  width: 1em;
+  margin-right: 5px;
+  transition: transform 0.1s linear;
+  font-size: 0.7em;
+  vertical-align: middle;
+}
+.category-node.expanded > .category-name::before {
+  transform: rotate(90deg);
+}
+
+.category-name::after {
+  content: '📁';
+  display: inline-block;
+  margin-left: 4px;
+  vertical-align: middle;
+  font-size: 1.1em;
+}
+
+.policy-leaf::before {
+  content: '📄';
+  display: inline-block;
+  width: 1em;
+  margin-right: 5px;
+  vertical-align: middle;
+  font-size: 1.1em;
+}
+
+/* Tree visibility */
+.category-node.expanded > ul {
+  display: block;
+}
+.category-node > ul {
+  display: none;
+}
+
+/* Highlight search matches */
+.highlight {
+  background-color: #ffda79 !important;
+  font-weight: bold;
+}
+
+/* ---------------- Main Content & Policies ---------------- */
+.hidden {
+  display: none !important;
+}
+
+#jsonView {
+  background-color: #2b2b2b;
+  color: #a9b7c6;
+  padding: 1rem;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
 .policy {
   background: #fff;
-  border: 1px solid #ccc;
-  padding: 1rem;
+  border: 1px solid var(--border-color);
+  padding: 1.5rem;
   margin-bottom: 1rem;
   border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 .policy h3 {
   margin-top: 0;
+  margin-bottom: 0.5rem;
+  font-size: 1.3rem;
 }
 
-/* Basis-Tabellen */
+.policy-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.policy-meta .policy-class {
+  font-weight: bold;
+  padding: 2px 8px;
+  border-radius: 12px;
+  color: white;
+}
+.policy-meta .policy-class.Machine { background-color: #3498db; }
+.policy-meta .policy-class.User { background-color: #2ecc71; }
+
+.policy-explain {
+  line-height: 1.6;
+  white-space: pre-wrap;
+  margin-bottom: 1rem;
+}
+
 .policy table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 0.5rem;
-  margin-bottom: 0;
-  background-color: #f8f9fa;
-  border: 1px solid #d0d4d8;
-}
-
-.policy table th {
-  background-color: #e1e5ea;
-}
-
-.policy table tr:nth-child(even) {
-  background-color: #eef1f4;
-}
-
-/* Abstand zwischen Tabellen und Text */
-.policy table + table {
-  margin-top: 1em;
-}
-.policy table + .explain {
-  margin-top: 1em;
-}
-
-.policy .explain {
-  line-height: 1.5;
-}
-
-/* Zellen */
-.policy td,
-.policy th {
-  border: 1px solid #ccc;
-  padding: 0.5rem;
-  vertical-align: middle;
-}
-
-/* ------------ Hover-Copy Button ------------ */
-.copy-cell {
-  position: relative;
-  padding-right: 2rem; /* Platz für Icon */
-}
-.copy-cell .copy-btn {
-  position: absolute;
-  top: 50%;
-  right: 0.5rem;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-.copy-cell:hover .copy-btn {
-  opacity: 1;
-}
-.copy-btn img {
-  width: 16px;
-  height: 16px;
-}
-.copy-btn:hover img {
-  filter: brightness(0.8);
-}
-
-/* ------------ Options Table Variation ------------ */
-.options-table {
-  margin-top: 1em;
-}
-.options-table th,
-.options-table td {
-  border: 1px solid #ccc;
-  padding: 0.5rem;
-}
-
-/* Value-Zelle zentrieren */
-.options-table td.value-cell {
-  text-align: center;
-}
-
-/* Default-Row Highlight & Badge */
-.options-table tr.default-row {
-  background-color: #e8f5e9;
-}
-.default-badge {
-  margin-left: 0.5em;
-  color: #f4b400;
-  font-size: 1.5em;
-  vertical-align: text-bottom;
-}
-
-/* -------------- JSON View -------------- */
-#jsonView {
-  white-space: pre-wrap;
-  background: #eee;
-  padding: 1rem;
-  border: 1px solid #ccc;
-  margin-top: 1rem;
-  font-family: monospace;
   font-size: 0.9rem;
 }
 
-.hidden {
-  display: none;
+.policy td, .policy th {
+  border: 1px solid #e0e0e0;
+  padding: 0.75rem;
+  text-align: left;
+  vertical-align: top;
+  word-break: break-all;
 }
 
-/* ---------- Responsive ---------- */
-@media (max-width: 768px) {
-  .layout {
-    flex-direction: column;
-  }
-  .sidebar {
-    width: 100%;
-    max-height: 200px;
-  }
-  #resizer {
-    display: none;
-  }
+.policy th {
+  background-color: #f9f9f9;
+  width: 150px;
+}
+
+.copy-cell {
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.copy-cell:hover {
+  background-color: var(--hover-bg);
+}
+.copy-cell::after {
+  content: 'Copied!';
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  background-color: #27ae60;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+.copy-cell.copied::after {
+  opacity: 1;
+}
+
+/* ---------------- Utility Classes ---------------- */
+.center-message {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: #888;
+}
+
+.loader {
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #3498db;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

@@ -17,8 +17,6 @@
       <label><input type="checkbox" value="Machine" checked> Machine</label>
     </div>
     <button id="toggleJson">Toggle JSON</button>
-
-    <!-- NEU: Projektname ganz rechts -->
     <span class="project-title">ADMX Policy Viewer</span>
   </header>
 
@@ -28,11 +26,39 @@
       <ul id="categoryTree"></ul>
     </aside>
     <div id="resizer"></div>
-    <main class="main">
+    <main class="main" id="mainContent">
       <section id="results"></section>
       <pre id="jsonView" class="hidden"></pre>
     </main>
   </div>
+
+  <!-- Template for a single policy card -->
+  <template id="policy-template">
+    <div class="policy">
+      <h3 class="policy-name"></h3>
+      <div class="policy-meta">
+        <span class="policy-class"></span>
+        <span class="policy-path"></span>
+      </div>
+      <p class="policy-explain"></p>
+      <table>
+        <tbody>
+          <tr>
+            <th>Registry Key</th>
+            <td class="policy-key copy-cell" title="Click to copy"></td>
+          </tr>
+          <tr>
+            <th>Value Name</th>
+            <td class="policy-value-name copy-cell" title="Click to copy"></td>
+          </tr>
+          <tr>
+            <th>ADMX File</th>
+            <td class="policy-admx-file"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </template>
 
   <script src="script.js" defer></script>
 </body>
