@@ -14,8 +14,8 @@ A lightweight, browser-based viewer for ADMX policy definitions.
 ## Usage
 
 1. Place your `policies.json` file in the same folder as `index.html`.
-2. Open the file in any modern browser.
-3. Click through the categories and explore the extracted policies.
+2. From that directory, start a local HTTP server (for example, run `python -m http.server`).
+3. Open `http://localhost:8000/index.html` and explore the extracted policies.
 
 > ⚠️ This project does not include any official ADMX/ADML files.
 > Please generate your own `policies.json` using your own extraction process.
