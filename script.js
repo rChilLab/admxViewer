@@ -151,62 +151,105 @@ function applyFilters() {
 function showPolicy(p) {
   const results = document.getElementById("results");
   results.innerHTML = "";
-  const div = document.createElement("div");
-  div.className = "policy";
 
-  const header = `<h3>${formatPolicyName(p.name)}</h3>`;
+  const container = document.createElement("div");
+  container.className = "policy";
 
-  // Registry info table with hover-copy
-  let tbl = `
-    <table>
-      <tr>
-        <td>Registry Path</td>
-        <td class="copy-cell">${p.key || "-"}
-          <button class="copy-btn" title="Copy to clipboard"
-                  onclick="navigator.clipboard.writeText('${p.key || ""}')">
-            <img src="copy-icon.png" alt="Copy"/>
-          </button>
-        </td>
-      </tr>
-      <tr>
-        <td>Registry Name</td>
-        <td class="copy-cell">${p.valueName || "-"}
-          <button class="copy-btn" title="Copy to clipboard"
-                  onclick="navigator.clipboard.writeText('${p.valueName || ""}')">
-            <img src="copy-icon.png" alt="Copy"/>
-          </button>
-        </td>
-      </tr>
-      <tr><td>Value Type</td><td>${p.valueType || "-"}</td></tr>
-      <tr><td>Supported On</td><td>${p.supportedOn || "-"}</td></tr>
-      <tr><td>Deprecated</td><td>${p.deprecated ? "Yes" : "No"}</td></tr>
-      <tr><td>ADMX File</td><td>${p.admxFile || "-"}</td></tr>
-    </table>
-  `;
+  const title = document.createElement("h3");
+  title.textContent = formatPolicyName(p.name);
+  container.appendChild(title);
 
-  // Options table
-  if (p.options && p.options.length) {
-    tbl += `
-      <table class="options-table">
-        <tr><th>Option</th><th>Value</th></tr>
-        ${p.options.map(o => `
-          <tr class="${o.default ? "default-row" : ""}">
-            <td>
-              ${o.name}
-              ${o.default ? `<span class="default-badge" title="Default">&#9733;</span>` : ""}
-            </td>
-            <td class="value-cell">${o.value}</td>
-          </tr>
-        `).join("")}
-      </table>
-    `;
+  const table = document.createElement("table");
+
+  function addCopyRow(label, value) {
+    const tr = document.createElement("tr");
+    const tdLabel = document.createElement("td");
+    tdLabel.textContent = label;
+    const tdValue = document.createElement("td");
+    tdValue.className = "copy-cell";
+    tdValue.appendChild(document.createTextNode(value || "-"));
+    tdValue.append(" ");
+    const btn = document.createElement("button");
+    btn.className = "copy-btn";
+    btn.title = "Copy to clipboard";
+    btn.addEventListener("click", () => navigator.clipboard.writeText(value || ""));
+    const img = document.createElement("img");
+    img.src = "copy-icon.png";
+    img.alt = "Copy";
+    btn.appendChild(img);
+    tdValue.appendChild(btn);
+    tr.appendChild(tdLabel);
+    tr.appendChild(tdValue);
+    table.appendChild(tr);
   }
 
-  const explainDiv = `<div class="explain">${p.explainText || ""}</div>`;
-  div.innerHTML = header + tbl + explainDiv;
-  results.appendChild(div);
+  function addRow(label, value) {
+    const tr = document.createElement("tr");
+    const td1 = document.createElement("td");
+    td1.textContent = label;
+    const td2 = document.createElement("td");
+    td2.textContent = value || "-";
+    tr.appendChild(td1);
+    tr.appendChild(td2);
+    table.appendChild(tr);
+  }
 
-  // JSON view
+  addCopyRow("Registry Path", p.key);
+  addCopyRow("Registry Name", p.valueName);
+  addRow("Value Type", p.valueType);
+  addRow("Supported On", p.supportedOn);
+  addRow("Deprecated", p.deprecated ? "Yes" : "No");
+  addRow("ADMX File", p.admxFile);
+
+  container.appendChild(table);
+
+  if (p.options && p.options.length) {
+    const optTable = document.createElement("table");
+    optTable.className = "options-table";
+
+    const headerRow = document.createElement("tr");
+    const thOpt = document.createElement("th");
+    thOpt.textContent = "Option";
+    const thVal = document.createElement("th");
+    thVal.textContent = "Value";
+    headerRow.appendChild(thOpt);
+    headerRow.appendChild(thVal);
+    optTable.appendChild(headerRow);
+
+    p.options.forEach(o => {
+      const tr = document.createElement("tr");
+      if (o.default) tr.className = "default-row";
+
+      const tdOpt = document.createElement("td");
+      tdOpt.appendChild(document.createTextNode(o.name));
+      if (o.default) {
+        tdOpt.append(" ");
+        const badge = document.createElement("span");
+        badge.className = "default-badge";
+        badge.title = "Default";
+        badge.textContent = "★";
+        tdOpt.appendChild(badge);
+      }
+
+      const tdVal = document.createElement("td");
+      tdVal.className = "value-cell";
+      tdVal.textContent = o.value;
+
+      tr.appendChild(tdOpt);
+      tr.appendChild(tdVal);
+      optTable.appendChild(tr);
+    });
+
+    container.appendChild(optTable);
+  }
+
+  const explain = document.createElement("div");
+  explain.className = "explain";
+  explain.textContent = p.explainText || "";
+  container.appendChild(explain);
+
+  results.appendChild(container);
+
   document.getElementById("jsonView").textContent = JSON.stringify(p, null, 2);
 }
 
