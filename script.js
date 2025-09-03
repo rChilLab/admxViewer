@@ -93,34 +93,35 @@ function buildCategoryTree(list) {
 // Render sidebar recursively
 function renderSidebar(tree, container = document.getElementById("categoryTree"), depth = 0) {
   container.innerHTML = "";
-  for (const key in tree) {
-    if (key === "__policies") continue;
-    const li = document.createElement("li");
-    li.className = "collapsible";
-    li.style.paddingLeft = `${depth * 16}px`;
-    const label = key.replace(/\$\((?:string\.)?(.+)\)/, (_, m) => m.replace(/_/g, " "));
-    li.textContent = `📂 ${label}`;
-    const sub = document.createElement("ul");
-    sub.style.display = "none";
-    li.appendChild(sub);
-    li.addEventListener("click", e => {
-      e.stopPropagation();
-      sub.style.display = sub.style.display === "block" ? "none" : "block";
-    });
-    renderSidebar(tree[key], sub, depth + 1);
-    (tree[key].__policies || []).forEach(p => {
-      const leaf = document.createElement("li");
-      leaf.className = "policy-leaf";
-      leaf.style.paddingLeft = `${(depth + 1) * 16}px`;
-      leaf.textContent = `📄 ${formatPolicyName(p.name)}`;
-      leaf.addEventListener("click", ev => {
-        ev.stopPropagation();
-        showPolicy(p);
+  Object.keys(tree)
+    .filter(key => key !== "__policies")
+    .forEach(key => {
+      const li = document.createElement("li");
+      li.className = "collapsible";
+      li.style.paddingLeft = `${depth * 16}px`;
+      const label = key.replace(/\$\((?:string\.)?(.+)\)/, (_, m) => m.replace(/_/g, " "));
+      li.textContent = `📂 ${label}`;
+      const sub = document.createElement("ul");
+      sub.style.display = "none";
+      li.appendChild(sub);
+      li.addEventListener("click", e => {
+        e.stopPropagation();
+        sub.style.display = sub.style.display === "block" ? "none" : "block";
       });
-      sub.appendChild(leaf);
+      renderSidebar(tree[key], sub, depth + 1);
+      (tree[key].__policies || []).forEach(p => {
+        const leaf = document.createElement("li");
+        leaf.className = "policy-leaf";
+        leaf.style.paddingLeft = `${(depth + 1) * 16}px`;
+        leaf.textContent = `📄 ${formatPolicyName(p.name)}`;
+        leaf.addEventListener("click", ev => {
+          ev.stopPropagation();
+          showPolicy(p);
+        });
+        sub.appendChild(leaf);
+      });
+      container.appendChild(li);
     });
-    container.appendChild(li);
-  }
 }
 
 // Get selected classes from checkboxes
