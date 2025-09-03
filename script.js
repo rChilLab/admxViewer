@@ -1,8 +1,9 @@
 let policies = [];
+let sidebar;
 
 document.addEventListener("DOMContentLoaded", () => {
   // 1. Sidebar-Resizer
-  const sidebar = document.getElementById("sidebar");
+  sidebar = document.getElementById("sidebar");
   const resizer = document.getElementById("resizer");
   let isResizing = false;
   resizer.addEventListener("mousedown", () => {
@@ -65,6 +66,15 @@ document.addEventListener("DOMContentLoaded", () => {
     .catch(err => console.error("Fehler beim Laden der policies.json:", err));
 });
 
+function adjustSidebarWidth() {
+  if (!sidebar) return;
+  const max = parseInt(getComputedStyle(sidebar).maxWidth);
+  const min = parseInt(getComputedStyle(sidebar).minWidth);
+  const contentWidth = sidebar.scrollWidth;
+  const newWidth = Math.min(Math.max(contentWidth, min), max);
+  sidebar.style.width = newWidth + "px";
+}
+
 // Pascal/CamelCase → "Title Case"
 function formatPolicyName(name) {
   return name
@@ -105,6 +115,7 @@ function renderSidebar(tree, container = document.getElementById("categoryTree")
       li.addEventListener("click", e => {
         e.stopPropagation();
         sub.style.display = sub.style.display === "block" ? "none" : "block";
+        adjustSidebarWidth();
       });
       renderSidebar(tree[key], sub, depth + 1);
       (tree[key].__policies || []).forEach(p => {
@@ -120,6 +131,9 @@ function renderSidebar(tree, container = document.getElementById("categoryTree")
       });
       container.appendChild(li);
     });
+  if (container.id === "categoryTree") {
+    adjustSidebarWidth();
+  }
 }
 
 // Get selected classes from checkboxes

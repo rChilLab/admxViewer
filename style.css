@@ -59,12 +59,13 @@ header button {
 }
 
 .sidebar {
-  width: 300px;
+  width: fit-content;
   min-width: 150px;
   max-width: 600px;
   background: #f4f4f4;
   border-right: 1px solid #ccc;
   padding: 1rem;
+  overflow-y: visible;
 }
 
 #resizer {
