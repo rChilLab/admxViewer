@@ -160,8 +160,7 @@ function showPolicy(p) {
       <tr>
         <td>Registry Path</td>
         <td class="copy-cell">${p.key || "-"}
-          <button class="copy-btn" title="Copy to clipboard"
-                  onclick="navigator.clipboard.writeText('${p.key || ""}')">
+          <button class="copy-btn" title="Copy to clipboard">
             <img src="copy-icon.png" alt="Copy"/>
           </button>
         </td>
@@ -169,8 +168,7 @@ function showPolicy(p) {
       <tr>
         <td>Registry Name</td>
         <td class="copy-cell">${p.valueName || "-"}
-          <button class="copy-btn" title="Copy to clipboard"
-                  onclick="navigator.clipboard.writeText('${p.valueName || ""}')">
+          <button class="copy-btn" title="Copy to clipboard">
             <img src="copy-icon.png" alt="Copy"/>
           </button>
         </td>
@@ -203,6 +201,18 @@ function showPolicy(p) {
   const explainDiv = `<div class="explain">${p.explainText || ""}</div>`;
   div.innerHTML = header + tbl + explainDiv;
   results.appendChild(div);
+
+  const [keyBtn, nameBtn] = div.querySelectorAll('.copy-btn');
+  if (keyBtn) {
+    keyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(p.key || "");
+    });
+  }
+  if (nameBtn) {
+    nameBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(p.valueName || "");
+    });
+  }
 
   // JSON view
   document.getElementById("jsonView").textContent = JSON.stringify(p, null, 2);
